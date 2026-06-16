@@ -38,6 +38,7 @@
             justify-content: center;
             gap: 10px;
             margin-bottom: 25px;
+            flex-wrap: wrap;
         }
 
         .tab-btn {
@@ -110,7 +111,7 @@
             outline: 2px solid var(--secondary);
         }
 
-        .ideas-container {
+        .ideas-container, .chat-container {
             max-width: 600px;
             margin: 0 auto;
         }
@@ -160,6 +161,58 @@
             padding: 4px 8px;
             border-radius: 4px;
             cursor: pointer;
+        }
+
+        /* --- STYLES DU CHAT --- */
+        .chat-box {
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            height: 350px;
+            overflow-y: auto;
+            padding: 15px;
+            background: #f8fafc;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .chat-message {
+            background: white;
+            padding: 10px 14px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            max-width: 85%;
+            align-self: flex-start;
+        }
+
+        .chat-message.me {
+            background: #ebf8ff;
+            border-left: 4px solid var(--primary);
+            align-self: flex-start;
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            margin-bottom: 4px;
+            gap: 20px;
+        }
+
+        .message-author {
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .message-time {
+            color: #a0aec0;
+        }
+
+        .message-text {
+            font-size: 14px;
+            color: var(--text);
+            word-break: break-word;
         }
 
         .city-select {
@@ -399,6 +452,7 @@
         <button class="tab-btn active" onclick="openTab('calendrier', event)">📅 Calendrier</button>
         <button class="tab-btn" onclick="openTab('idees', event)">💡 Idées</button>
         <button class="tab-btn" onclick="openTab('restaurants', event)">🍴 Restaurants</button>
+        <button class="tab-btn" onclick="openTab('discussion', event)">💬 Chat</button>
     </div>
 
     <div id="calendrier" class="tab-content active">
@@ -431,6 +485,20 @@
         </select>
 
         <div class="restaurant-grid" id="restaurantGrid"></div>
+    </div>
+
+    <div id="discussion" class="tab-content">
+        <div class="chat-container">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>Espace Discussion</h2>
+                <button class="clear-logs-btn" style="font-size: 13px;" onclick="clearChat()">Vider le chat</button>
+            </div>
+            <div class="chat-box" id="chatBox"></div>
+            <div class="input-group">
+                <input type="text" id="chatInput" placeholder="Écrivez un message ici..." onkeydown="if(event.key === 'Enter') sendChatMessage()">
+                <button class="btn" onclick="sendChatMessage()">Envoyer</button>
+            </div>
+        </div>
     </div>
 
     <div class="bottom-left-panel">
@@ -489,12 +557,14 @@
 
         let currentDeviceName = localStorage.getItem('device-name');
         let connectionLogs = JSON.parse(localStorage.getItem('connection-logs')) || [];
+        let chatMessages = JSON.parse(localStorage.getItem('chat-messages')) || [];
 
         document.addEventListener("DOMContentLoaded", () => {
             initCalendar();
             renderIdeas();
             filterRestaurants();
             renderLogs();
+            renderChat();
 
             if (!currentDeviceName) {
                 document.getElementById('loginModal').style.display = 'flex';
@@ -549,6 +619,12 @@
             if(event && event.currentTarget) {
                 event.currentTarget.classList.add('active');
             }
+
+            // Si on ouvre l'onglet chat, on descend automatiquement tout en bas des messages
+            if (tabId === 'discussion') {
+                const box = document.getElementById('chatBox');
+                if(box) box.scrollTop = box.scrollHeight;
+            }
         }
 
         function saveDeviceName() {
@@ -570,7 +646,7 @@
             if(displayEl) displayEl.innerText = `Appareil actuel : ${name}`;
 
             connectionLogs.unshift(logEntry);
-            if (connectionLogs.length > 50) connectionLogs.pop(); // Garde les 50 dernières connexions
+            if (connectionLogs.length > 50) connectionLogs.pop();
             localStorage.setItem('connection-logs', JSON.stringify(connectionLogs));
             renderLogs();
         }
@@ -632,6 +708,64 @@
             ideas.splice(index, 1);
             localStorage.setItem('vacation-ideas', JSON.stringify(ideas));
             renderIdeas();
+        }
+
+        // --- ENREGISTREMENT ET AFFICHAGE DU CHAT ---
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            if (!input || input.value.trim() === '') return;
+
+            const now = new Date();
+            const timeStr = now.toLocaleDateString('fr-FR', {day: 'numeric', month: 'short'}) + ' à ' + now.toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'});
+
+            const messageObj = {
+                author: currentDeviceName || "Appareil Inconnu",
+                text: input.value.trim(),
+                time: timeStr
+            };
+
+            chatMessages.push(messageObj);
+            localStorage.setItem('chat-messages', JSON.stringify(chatMessages));
+            input.value = '';
+            renderChat();
+        }
+
+        function renderChat() {
+            const box = document.getElementById('chatBox');
+            if (!box) return;
+            box.innerHTML = '';
+
+            if (chatMessages.length === 0) {
+                box.innerHTML = '<p style="color: #a0aec0; text-align: center; margin: auto 0;">Aucun message pour le moment. Lancez la discussion !</p>';
+                return;
+            }
+
+            chatMessages.forEach(msg => {
+                const msgDiv = document.createElement('div');
+                // On applique un style spécial si c'est notre propre appareil
+                const isMe = (msg.author === currentDeviceName);
+                msgDiv.className = `chat-message ${isMe ? 'me' : ''}`;
+
+                msgDiv.innerHTML = `
+                    <div class="message-header">
+                        <span class="message-author">${msg.author}</span>
+                        <span class="message-time">${msg.time}</span>
+                    </div>
+                    <div class="message-text">${msg.text}</div>
+                `;
+                box.appendChild(msgDiv);
+            });
+
+            // Scroller automatiquement vers le bas à l'arrivée d'un message
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function clearChat() {
+            if (confirm("Voulez-vous vraiment effacer tous les messages du chat ?")) {
+                chatMessages = [];
+                localStorage.setItem('chat-messages', JSON.stringify(chatMessages));
+                renderChat();
+            }
         }
 
         function filterRestaurants() {
