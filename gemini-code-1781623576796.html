@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organisation Vacances d'Été</title>
+    <style>
+        :root {
+            --primary: #2b6cb0;
+            --secondary: #319795;
+            --bg: #f7fafc;
+            --card-bg: #ffffff;
+            --text: #2d3748;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--primary);
+        }
+
+        /* Système d'onglets */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            background-color: #e2e8f0;
+            color: #4a5568;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .tab-content {
+            display: none;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Style Calendrier */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+        }
+
+        .day-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .day-date {
+            font-weight: bold;
+            color: var(--primary);
+            font-size: 14px;
+            border-bottom: 1px solid #edf2f7;
+            padding-bottom: 4px;
+        }
+
+        .day-note {
+            width: 100%;
+            height: 80px;
+            border: 1px solid #edf2f7;
+            border-radius: 4px;
+            padding: 6px;
+            resize: none;
+            font-size: 13px;
+        }
+
+        .day-note:focus {
+            outline: 2px solid var(--secondary);
+        }
+
+        /* Style Idées */
+        .ideas-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .ideas-list {
+            list-style: none;
+        }
+
+        .idea-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #f7fafc;
+            border-bottom: 1px solid #e2e8f0;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+
+        .delete-btn {
+            background: #e53e3e;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* Style Restaurants */
+        .city-select {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e0;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .restaurant-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .restaurant-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .rest-name {
+            color: var(--primary);
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .rest-info {
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+
+        .rest-label {
+            font-weight: bold;
+        }
+
+        .map-link {
+            display: inline-block;
+            margin-top: 10px;
+            color: var(--secondary);
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .map-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Mon Carnet de Vacances Étoilé</h1>
+    </header>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="openTab('calendrier')">📅 Calendrier</button>
+        <button class="tab-btn" onclick="openTab('idees')">💡 Idées</button>
+        <button class="tab-btn" onclick="openTab('restaurants')">🍴 Restaurants</button>
+    </div>
+
+    <div id="calendrier" class="tab-content active">
+        <h2 style="margin-bottom: 20px;">Planning du 19 Juillet au 22 Août</h2>
+        <div class="calendar-grid" id="calendarGrid"></div>
+    </div>
+
+    <div id="idees" class="tab-content">
+        <div class="ideas-container">
+            <h2 style="margin-bottom: 20px;">Boîte à Idées / Activités</h2>
+            <div class="input-group">
+                <input type="text" id="ideaInput" placeholder="Ex: Louer des vélos, Visiter le musée...">
+                <button class="btn" onclick="addIdea()">Ajouter</button>
+            </div>
+            <ul class="ideas-list" id="ideasList"></ul>
+        </div>
+    </div>
+
+    <div id="restaurants" class="tab-content">
+        <h2>Guide des Restaurants</h2>
+        <p style="margin-bottom: 15px; color: #718096;">Sélectionnez une ville pour voir les adresses :</p>
+        
+        <select class="city-select" id="citySelector" onchange="filterRestaurants()">
+            <option value="toulouse">Toulouse</option>
+            <option value="lourdes">Lourdes</option>
+            <option value="bordeaux">Bordeaux</option>
+            <option value="dune-pilat">Dune du Pilat</option>
+            <option value="zurich">Zurich</option>
+            <option value="paris">Paris</option>
+        </select>
+
+        <div class="restaurant-grid" id="restaurantGrid">
+            </div>
+    </div>
+
+    <script>
+        // --- LOGIQUE DES ONGLETS ---
+        function openTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        // --- LOGIQUE DU CALENDRIER ---
+        // Génération des dates du 19 juillet au 22 août
+        const calendarGrid = document.getElementById('calendarGrid');
+        const startDate = new Date(2026, 6, 19); // 19 Juillet (Note: Mois de 0 à 11)
+        const endDate = new Date(2026, 7, 22);  // 22 Août
+
+        let currentDate = new Date(startDate);
+        
+        while (currentDate <= endDate) {
+            const dateString = currentDate.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+            const storageKey = `note-${currentDate.toISOString().split('T')[0]}`;
+            
+            // Récupérer la note sauvegardée si elle existe
+            const savedNote = localStorage.getItem(storageKey) || '';
+
+            const dayCard = document.createElement('div');
+            dayCard.className = 'day-card';
+            dayCard.innerHTML = `
+                <div class="day-date">${dateString}</div>
+                <textarea class="day-note" data-key="${storageKey}" placeholder="Notes pour ce jour...">${savedNote}</textarea>
+            `;
+            calendarGrid.appendChild(dayCard);
+            
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+
+        // Sauvegarde automatique des notes dans le navigateur quand on écrit
+        document.querySelectorAll('.day-note').forEach(textarea => {
+            textarea.addEventListener('input', (e) => {
+                localStorage.setItem(e.target.getAttribute('data-key'), e.target.value);
+            });
+        });
+
+        // --- LOGIQUE DES IDÉES ---
+        const ideasList = document.getElementById('ideasList');
+        let ideas = JSON.parse(localStorage.getItem('vacation-ideas')) || [];
+
+        function renderIdeas() {
+            ideasList.innerHTML = '';
+            ideas.forEach((idea, index) => {
+                const li = document.createElement('li');
+                li.className = 'idea-item';
+                li.innerHTML = `
+                    <span>${idea}</span>
+                    <button class="delete-btn" onclick="deleteIdea(${index})">Supprimer</button>
+                `;
+                ideasList.appendChild(li);
+            });
+        }
+
+        function addIdea() {
+            const input = document.getElementById('ideaInput');
+            if (input.value.trim() !== '') {
+                ideas.push(input.value.trim());
+                localStorage.setItem('vacation-ideas', JSON.stringify(ideas));
+                input.value = '';
+                renderIdeas();
+            }
+        }
+
+        function deleteIdea(index) {
+            ideas.splice(index, 1);
+            localStorage.setItem('vacation-ideas', JSON.stringify(ideas));
+            renderIdeas();
+        }
+        
+        renderIdeas();
+
+        // --- LOGIQUE DES RESTAURANTS (BASE DE DONNÉES ÉVOLUTIVE) ---
+        // Vous pouvez ajouter, modifier ou compléter vos restaurants directement dans cette liste ci-dessous !
+        const restaurantsData = [
+            {
+                ville: "toulouse",
+                nom: "Le Bibent",
+                type: "Brasserie gastronomique / Sud-Ouest",
+                prix: "€€€ (Menus à partir de ~35€)",
+                carte: "Cassoulet traditionnel, Foie gras poêlé, Magret de canard.",
+                maps: "https://maps.app.goo.gl/toulouse-bibent-exemple", // Remplacer par le vrai lien
+                adresse: "Place du Capitole, 31000 Toulouse"
+            },
+            {
+                ville: "bordeaux",
+                nom: "L'Entrecôte",
+                type: "Traditionnel / Viandes",
+                prix: "€€ (Formule unique autour de 22€)",
+                carte: "Formule unique : Salade aux noix, Faux-filet paré et sa fameuse sauce secrète, frites fraîches.",
+                maps: "https://maps.app.goo.gl/bordeaux-entrecote-exemple",
+                adresse: "4 Cours de 30 Juillet, 33000 Bordeaux"
+            },
+            {
+                ville: "paris",
+                nom: "Bouillon Chartier",
+                type: "Bouillon traditionnel parisien",
+                prix: "€ (Très abordable, plats dès 8€)",
+                carte: "Œuf mayonnaise, Escargots, Confit de canard, Baba au rhum.",
+                maps: "https://maps.app.goo.gl/paris-chartier-exemple",
+                adresse: "7 Rue du Faubourg Montmartre, 75009 Paris"
+            }
+            // Ajoutez d'autres restaurants ici en suivant le même modèle pour "lourdes", "dune-pilat", "zurich"...
+        ];
+
+        function filterRestaurants() {
+            const selectedCity = document.getElementById('citySelector').value;
+            const grid = document.getElementById('restaurantGrid');
+            grid.innerHTML = '';
+
+            const filtered = restaurantsData.filter(r => r.ville === selectedCity);
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #a0aec0; padding: 20px;">Aucun restaurant enregistré pour cette ville. Ajoutez-en dans le code JavaScript !</p>`;
+                return;
+            }
+
+            filtered.forEach(rest => {
+                const card = document.createElement('div');
+                card.className = 'restaurant-card';
+                card.innerHTML = `
+                    <h3 class="rest-name">${rest.nom}</h3>
+                    <div class="rest-info"><span class="rest-label">Type :</span> ${rest.type}</div>
+                    <div class="rest-info"><span class="rest-label">Prix :</span> ${rest.prix}</div>
+                    <div class="rest-info"><span class="rest-label">Sur la carte :</span> ${rest.carte}</div>
+                    <div class="rest-info"><span class="rest-label">Adresse :</span> ${rest.adresse}</div>
+                    <a href="${rest.maps}" target="_blank" class="map-link">📍 Voir sur Google Maps</a>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Charger les restos de la première ville au démarrage
+        filterRestaurants();
+    </script>
+</body>
+</html>
