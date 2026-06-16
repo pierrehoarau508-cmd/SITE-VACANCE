@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organisation Vacances d'Été</title>
+    <style>
+        :root {
+            --primary: #2b6cb0;
+            --secondary: #319795;
+            --bg: #f7fafc;
+            --card-bg: #ffffff;
+            --text: #2d3748;
+            --stars: #ecc94b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--primary);
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            background-color: #e2e8f0;
+            color: #4a5568;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .tab-content {
+            display: none;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            max-width: 1200px;
+            margin: 0 auto 60px auto;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+        }
+
+        .day-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .day-date {
+            font-weight: bold;
+            color: var(--primary);
+            font-size: 14px;
+            border-bottom: 1px solid #edf2f7;
+            padding-bottom: 4px;
+        }
+
+        .day-note {
+            width: 100%;
+            height: 80px;
+            border: 1px solid #edf2f7;
+            border-radius: 4px;
+            padding: 6px;
+            resize: none;
+            font-size: 13px;
+        }
+
+        .day-note:focus {
+            outline: 2px solid var(--secondary);
+        }
+
+        .ideas-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .ideas-list {
+            list-style: none;
+        }
+
+        .idea-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #f7fafc;
+            border-bottom: 1px solid #e2e8f0;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+
+        .delete-btn {
+            background: #e53e3e;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .city-select {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e0;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .restaurant-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .restaurant-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .restaurant-img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            background-color: #edf2f7;
+        }
+
+        .restaurant-body {
+            padding: 15px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .rest-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+            gap: 10px;
+        }
+
+        .rest-name {
+            color: var(--primary);
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .rest-stars {
+            color: var(--stars);
+            font-size: 15px;
+            white-space: nowrap;
+        }
+
+        .rest-info {
+            font-size: 14px;
+            margin-bottom: 6px;
+            color: #4a5568;
+        }
+
+        .rest-label {
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .links-group {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            flex-direction: column;
+        }
+
+        .map-link, .web-link {
+            text-align: center;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            display: block;
+        }
+
+        .map-link {
+            background: #edf2f7;
+            color: var(--primary);
+        }
+
+        .map-link:hover {
+            background: #cbd5e0;
+        }
+
+        .web-link {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .web-link:hover {
+            opacity: 0.9;
+        }
+
+        .bottom-left-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+
+        .register-toggle-btn {
+            background-color: #4a5568;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .register-card {
+            display: none;
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            width: 300px;
+            max-height: 250px;
+            background: white;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .register-card.active {
+            display: block;
+        }
+
+        .register-card h3 {
+            font-size: 14px;
+            color: var(--primary);
+            margin-bottom: 10px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 5px;
+        }
+
+        .log-item {
+            font-size: 12px;
+            padding: 4px 0;
+            border-bottom: 1px dashed #edf2f7;
+            color: #4a5568;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .modal-box {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .modal-box h2 {
+            font-size: 20px;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .modal-box input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 16px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loginModal" class="modal-overlay" style="display: none;">
+        <div class="modal-box">
+            <h2>Bienvenue sur votre carnet</h2>
+            <p style="margin-bottom: 15px; font-size: 14px; color: #718096;">Veuillez donner un nom à cet appareil pour l'identifier dans le registre.</p>
+            <input type="text" id="deviceNameInput" placeholder="Nom de l'appareil...">
+            <button class="btn" style="width: 100%;" onclick="saveDeviceName()">Valider et Accéder</button>
+        </div>
+    </div>
+
+    <header>
+        <h1>Mon Carnet de Vacances Étoilé</h1>
+        <p id="currentUserDisplay" style="font-size: 14px; color: #718096; margin-top: 5px;"></p>
+    </header>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="openTab('calendrier', event)">📅 Calendrier</button>
+        <button class="tab-btn" onclick="openTab('idees', event)">💡 Idées</button>
+        <button class="tab-btn" onclick="openTab('restaurants', event)">🍴 Restaurants</button>
+    </div>
+
+    <div id="calendrier" class="tab-content active">
+        <h2 style="margin-bottom: 20px;">Planning du 19 Juillet au 22 Août</h2>
+        <div class="calendar-grid" id="calendarGrid"></div>
+    </div>
+
+    <div id="idees" class="tab-content">
+        <div class="ideas-container">
+            <h2 style="margin-bottom: 20px;">Boîte à Idées / Activités</h2>
+            <div class="input-group">
+                <input type="text" id="ideaInput" placeholder="Ex: Louer des vélos...">
+                <button class="btn" onclick="addIdea()">Ajouter</button>
+            </div>
+            <ul class="ideas-list" id="ideasList"></ul>
+        </div>
+    </div>
+
+    <div id="restaurants" class="tab-content">
+        <h2>Guide des Restaurants</h2>
+        <p style="margin-bottom: 15px; color: #718096;">Sélectionnez une ville pour voir les adresses :</p>
+        
+        <select class="city-select" id="citySelector" onchange="filterRestaurants()">
+            <option value="toulouse">Toulouse</option>
+            <option value="lourdes">Lourdes</option>
+            <option value="bordeaux">Bordeaux</option>
+            <option value="dune-pilat">Dune du Pilat / Arcachon</option>
+            <option value="zurich">Zurich</option>
+            <option value="paris">Paris</option>
+        </select>
+
+        <div class="restaurant-grid" id="restaurantGrid"></div>
+    </div>
+
+    <div class="bottom-left-panel">
+        <div id="registerCard" class="register-card">
+            <h3>📋 Historique des connexions</h3>
+            <div id="logList"></div>
+        </div>
+        <button class="register-toggle-btn" onclick="toggleRegister()">📋 Registre</button>
+    </div>
+
+    <script>
+        // --- BASE DE DONNÉES AVEC BUDGETS EN CHIFFRES ---
+        const restaurantsData = [
+            // TOULOUSE
+            { ville: "toulouse", nom: "Black Pearl", type: "Smash Burgers & Bowls", etoiles: 5, prix: "15-20€", carte: "Burgers écrasés croustillants, frites maison, bowls fraîcheur.", adresse: "2 Rue Paul Mériel, 31000 Toulouse", web: "https://black-pearl-31.com/", img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600" },
+            { ville: "toulouse", nom: "Le Zinc", type: "Bistrot & Bar à vin", etoiles: 4, prix: "25-35€", carte: "Plats du terroir, magret entier, planches de charcuterie.", adresse: "14 Place Saint-Pierre, 31000 Toulouse", web: "https://www.instagram.com/lezinctoulouse/", img: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600" },
+            { ville: "toulouse", nom: "Rue du Vietnam", type: "Asiatique Authentique", etoiles: 5, prix: "15-25€", carte: "Pho traditionnel maison, Bo Bun croustillant.", adresse: "34 Rue de la Colombette, 31000 Toulouse", web: "https://www.instagram.com/rueduvietnam/", img: "https://images.unsplash.com/photo-1528605248644-14dd04022da1?w=600" },
+            { ville: "toulouse", nom: "Mazzolina", type: "Pizzeria Napolitaine", etoiles: 5, prix: "15-22€", carte: "Pizzas contemporaines à croûte légère et alvéolée.", adresse: "18 Rue de la Fonderie, 31000 Toulouse", web: "https://www.instagram.com/pizzeriamazzolina/", img: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600" },
+            { ville: "toulouse", nom: "Le Tôt ou Tard", type: "Bistronomie Créative", etoiles: 5, prix: "35-50€", carte: "Cuisine moderne raffinée et changeante selon la saison.", adresse: "7 Rue de la Fonderie, 31000 Toulouse", web: "https://www.instagram.com/letotoutard_toulouse/", img: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600" },
+            { ville: "toulouse", nom: "Waku Waku", type: "Ramen Bar", etoiles: 4, prix: "14-18€", carte: "Ramens traditionnels, bouillons mijotés et gyozas.", adresse: "40 Rue de la République, 31300 Toulouse", web: "https://www.instagram.com/wakuwaku_ramen/", img: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=600" },
+            { ville: "toulouse", nom: "Mangez et barrez vous", type: "Burgers à prix mini", etoiles: 5, prix: "5-10€", carte: "Burgers maison gourmands et frites à prix ultra compétitif.", adresse: "9 Rue Saint-Rome, 31000 Toulouse", web: "https://www.instagram.com/mangezetbarrezvous/", img: "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=600" },
+            { ville: "toulouse", nom: "Yuki Onigiri", type: "Street Food Japonaise", etoiles: 4, prix: "5-12€", carte: "Onigiris artisanaux préparés à la commande.", adresse: "5 Rue du Salé, 31000 Toulouse", web: "https://www.instagram.com/yukionigiri.tlse/", img: "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=600" },
+            { ville: "toulouse", nom: "Okaeri", type: "Ramen Artisanaux", etoiles: 5, prix: "15-20€", carte: "Nouilles bio maison, bouillons Tonkotsu d'exception mijotés.", adresse: "35 Rue Nicolas Bachelier, 31000 Toulouse", web: "https://www.instagram.com/okaeri.ramen/", img: "https://images.unsplash.com/photo-1655195204273-0402b8b939ba?w=600" },
+            { ville: "toulouse", nom: "Black and White Burger", type: "Burgers Gourmets", etoiles: 4, prix: "14-20€", carte: "Burgers signatures avec pains au charbon végétal.", adresse: "63 Rue du Taur, 31000 Toulouse", web: "https://bnwburger.com/", img: "https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=600" },
+            { ville: "toulouse", nom: "Marcello", type: "Pizzeria Napolitaine", etoiles: 5, prix: "15-25€", carte: "Pizzas au feu de bois napolitaines et cour intérieure.", adresse: "2 Boulevard Michelet, 31000 Toulouse", web: "https://restaurant-marcello.com/", img: "https://images.unsplash.com/photo-1546549032-9571cd6b27df?w=600" },
+            { ville: "toulouse", nom: "Le Boui Boui Sando", type: "Sandwiches Sando", etoiles: 4, prix: "12-18€", carte: "Katsu Sando croustillants, pains briochés japonais.", adresse: "41 Rue des Paradoux, 31000 Toulouse", web: "https://www.instagram.com/lebouiboui_kebab/", img: "https://images.unsplash.com/photo-1509722747041-616f39b57569?w=600" },
+
+            // DUNE DU PILAT / ARCACHON
+            { ville: "dune-pilat", nom: "La Cabane de l'Aiguillon", type: "Dégustation d'Huîtres", etoiles: 5, prix: "15-30€", carte: "Huîtres ultra fraîches du bassin, crevettes, bulots et vin blanc.", adresse: "Port de l'Aiguillon, 33120 Arcachon", web: "https://www.instagram.com/cabane_de_laiguillon/", img: "https://images.unsplash.com/photo-1553621042-f6e147245754?w=600" },
+            { ville: "dune-pilat", nom: "Butch", type: "Smash Burgers", etoiles: 4, prix: "12-18€", carte: "Smash burgers croustillants et frites maison.", adresse: "Zone Artisanale, 33260 La Teste-de-Buch", web: "https://www.instagram.com/butch.smashburger/", img: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=600" },
+            { ville: "dune-pilat", nom: "Le Bikini", type: "Restaurant de Plage / Latino", etoiles: 4, prix: "30-50€", carte: "Tapas, poissons frais grillés et ambiance bohème les pieds dans le sable.", adresse: "18 Allée du Petit Port, 33115 Arcachon", web: "https://www.instagram.com/lebikinarcachon/", img: "https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?w=600" },
+            { ville: "dune-pilat", nom: "Chez Pierre", type: "Brasserie chic de la mer", etoiles: 5, prix: "40-70€", carte: "Plateaux de fruits de mer géants, poissons fins sauvages, sole meunière.", adresse: "1 Boulevard de la Plage, 33120 Arcachon", web: "https://www.instagram.com/cafedelaplage_chezpierre/", img: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=600" },
+
+            // PARIS
+            { ville: "paris", nom: "Matsuya", type: "Japonais traditionnel", etoiles: 4, prix: "15-25€", carte: "Sushis, sashimis frais, yakitori cuits minute.", adresse: "204 Rue de Vaugirard, 75015 Paris", web: "https://www.ubereats.com/fr/store/matsuya/ZpvTFUfYT22K5a-rF0ribw", img: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600" },
+            { ville: "paris", nom: "Kodawari Ramen (Tsukiji)", type: "Ramen Immersif", etoiles: 5, prix: "16-22€", carte: "Ramens d'exception au poisson dans un décor de faux marché d'Ito.", adresse: "12 Rue de Richelieu, 75001 Paris", web: "https://www.instagram.com/kodawariramen/", img: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=600" },
+            { ville: "paris", nom: "Pink Mamma", type: "Italien festif", etoiles: 5, prix: "20-35€", carte: "Pâtes à la truffe fraîches, pizzas napolitaines, verrière incroyable.", adresse: "20 Bis Rue de Douai, 75009 Paris", web: "https://www.instagram.com/bigmamma.fr/", img: "https://images.unsplash.com/photo-1537047902294-62a40c20a6ae?w=600" },
+            { ville: "paris", nom: "L'As du Fallafel", type: "Street-food du Marais", etoiles: 5, prix: "10-15€", carte: "Le fameux sandwich fallafel mondialement connu, pita ultra généreuse.", adresse: "34 Rue des Rosiers, 75004 Paris", web: "http://l-as-du-fallafel.zmenu.me", img: "https://images.unsplash.com/photo-1547058886-af77992d8d65?w=600" },
+
+            // BORDEAUX
+            { ville: "bordeaux", nom: "Mizuki", type: "Buffet Asiatique & Wok", etoiles: 4, prix: "20-28€", carte: "Grand choix de sushis et grillades wok à la minute.", adresse: "Avenue des Quarante Journaux, 33300 Bordeaux", web: "https://www.instagram.com/mizuki.bordeaux/", img: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=600" },
+            { ville: "bordeaux", nom: "Fufu Ramen", type: "Nouilles Japonaises", etoiles: 5, prix: "14-18€", carte: "Ramen chaud cuit à la minute devant vous, gyoza porc maison.", adresse: "37 Rue Saint-Rémi, 33000 Bordeaux", web: "https://www.instagram.com/fufuramen/", img: "https://images.unsplash.com/photo-1557872943-16a5ac26437e?w=600" },
+            { ville: "bordeaux", nom: "Le Chien de Pavlov", type: "Bistronomie moderne", etoiles: 5, prix: "30-45€", carte: "Cuisine de saison inventive, assiettes graphiques, produits du marché.", adresse: "39 Rue de la Devise, 33000 Bordeaux", web: "https://www.instagram.com/lechiendepavlov/", img: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600" },
+            { ville: "bordeaux", nom: "Osteria Da Luigi", type: "Trattoria Italienne", etoiles: 4, prix: "20-30€", carte: "Ambiance italienne chantante, planches géantes, pâtes fraîches.", adresse: "23 Rue du Pas-Saint-Georges, 33000 Bordeaux", web: "https://www.instagram.com/osteriadaluigibordeaux/", img: "https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=600" },
+
+            // LOURDES
+            { ville: "lourdes", nom: "Chez Giovanni", type: "Pizzeria feu de bois", etoiles: 4, prix: "12-20€", carte: "Pizzas copieuses cuites au feu de bois dans une ambiance italienne.", adresse: "23 Rue de la Grotte, 65100 Lourdes", web: "https://www.facebook.com/p/Chez-Giovanni-Lourdes-100063715873289/", img: "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=600" },
+            { ville: "lourdes", nom: "Le Saint Jean", type: "Cuisine Terroir / Sud-Ouest", etoiles: 4, prix: "18-28€", carte: "Confit de canard, garbure bigourdane, frites maison au gras de canard.", adresse: "25 Rue de la Grotte, 65100 Lourdes", web: "https://www.facebook.com/lesaintjeanlourdes/", img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=600" },
+            { ville: "lourdes", nom: "L'Ambroisie", type: "Bistrot Raffiné", etoiles: 5, prix: "30-50€", carte: "Plats travaillés, truite des Pyrénées, desserts faits maison délicats.", adresse: "62 Rue de la Grotte, 65100 Lourdes", web: "https://www.instagram.com/lambroisie_lourdes/", img: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600" },
+
+            // ZURICH
+            { ville: "zurich", nom: "Beetnut", type: "Healthy & Vegan", etoiles: 5, prix: "20-30 CHF (20-30€)", carte: "Bowls sains et colorés, toasts d'avocat, jus frais pressés à froid.", adresse: "Lagerstrasse 16b, 8004 Zürich", web: "https://www.instagram.com/beetnut/", img: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600" },
+            { ville: "zurich", nom: "Frau Gerolds Garten", type: "Biergarten & Street Food", etoiles: 4, prix: "15-35 CHF (15-35€)", carte: "Lieu alternatif extérieur en conteneurs, fondues en hiver, grillades en été.", adresse: "Geroldstrasse 23, 8005 Zürich", web: "https://www.instagram.com/fraugeroldsgarten/", img: "https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=600" },
+            { ville: "zurich", nom: "Zeughauskeller", type: "Traditionnel Suisse", etoiles: 4, prix: "30-50 CHF (30-50€)", carte: "Émincé de veau à la zurichoise avec röstis croustillants dans un ancien arsenal.", adresse: "Bahnhofstrasse 28a, 8001 Zürich", web: "https://www.zeughauskeller.ch/", img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=600" }
+        ];
+
+        let currentDeviceName = localStorage.getItem('device-name');
+        let connectionLogs = JSON.parse(localStorage.getItem('connection-logs')) || [];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            initCalendar();
+            renderIdeas();
+            filterRestaurants();
+            renderLogs();
+
+            if (!currentDeviceName) {
+                document.getElementById('loginModal').style.display = 'flex';
+            } else {
+                logConnection(currentDeviceName);
+            }
+        });
+
+        function initCalendar() {
+            const calendarGrid = document.getElementById('calendarGrid');
+            if(!calendarGrid) return;
+            calendarGrid.innerHTML = '';
+            
+            const start = new Date(2026, 6, 19, 12, 0, 0); 
+            const end = new Date(2026, 7, 22, 12, 0, 0);  
+            let current = new Date(start);
+            let maxLoop = 100; 
+
+            while (current <= end && maxLoop > 0) {
+                maxLoop--;
+                const dateString = current.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+                
+                const year = current.getFullYear();
+                const month = String(current.getMonth() + 1).padStart(2, '0');
+                const day = String(current.getDate()).padStart(2, '0');
+                const storageKey = `note-${year}-${month}-${day}`;
+                
+                const savedNote = localStorage.getItem(storageKey) || '';
+
+                const dayCard = document.createElement('div');
+                dayCard.className = 'day-card';
+                dayCard.innerHTML = `
+                    <div class="day-date">${dateString}</div>
+                    <textarea class="day-note" data-key="${storageKey}" placeholder="Notes...">${savedNote}</textarea>
+                `;
+                calendarGrid.appendChild(dayCard);
+                current.setDate(current.getDate() + 1);
+            }
+
+            document.querySelectorAll('.day-note').forEach(textarea => {
+                textarea.addEventListener('input', (e) => {
+                    localStorage.setItem(e.target.getAttribute('data-key'), e.target.value);
+                });
+            });
+        }
+
+        function openTab(tabId, event) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            if(event && event.currentTarget) {
+                event.currentTarget.classList.add('active');
+            }
+        }
+
+        function saveDeviceName() {
+            const nameInput = document.getElementById('deviceNameInput').value.trim();
+            if (nameInput !== '') {
+                localStorage.setItem('device-name', nameInput);
+                currentDeviceName = nameInput;
+                document.getElementById('loginModal').style.display = 'none';
+                logConnection(nameInput);
+            }
+        }
+
+        function logConnection(name) {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('fr-FR') + ' à ' + now.toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'});
+            const logEntry = `Connexion de [${name}] le ${dateStr}`;
+            
+            const displayEl = document.getElementById('currentUserDisplay');
+            if(displayEl) displayEl.innerText = `Appareil actuel : ${name}`;
+
+            if (connectionLogs.length === 0 || connectionLogs[0] !== logEntry) {
+                connectionLogs.unshift(logEntry);
+                if (connectionLogs.length > 30) connectionLogs.pop();
+                localStorage.setItem('connection-logs', JSON.stringify(connectionLogs));
+            }
+            renderLogs();
+        }
+
+        function toggleRegister() {
+            document.getElementById('registerCard').classList.toggle('active');
+        }
+
+        function renderLogs() {
+            const logListDiv = document.getElementById('logList');
+            if(!logListDiv) return;
+            logListDiv.innerHTML = '';
+            connectionLogs.forEach(log => {
+                const item = document.createElement('div');
+                item.className = 'log-item';
+                item.innerText = log;
+                logListDiv.appendChild(item);
+            });
+        }
+
+        let ideas = JSON.parse(localStorage.getItem('vacation-ideas')) || [];
+        function renderIdeas() {
+            const ideasList = document.getElementById('ideasList');
+            if(!ideasList) return;
+            ideasList.innerHTML = '';
+            ideas.forEach((idea, index) => {
+                const li = document.createElement('li');
+                li.className = 'idea-item';
+                li.innerHTML = `<span>${idea}</span><button class="delete-btn" onclick="deleteIdea(${index})">Supprimer</button>`;
+                ideasList.appendChild(li);
+            });
+        }
+
+        function addIdea() {
+            const input = document.getElementById('ideaInput');
+            if (input && input.value.trim() !== '') {
+                ideas.push(input.value.trim());
+                localStorage.setItem('vacation-ideas', JSON.stringify(ideas));
+                input.value = '';
+                renderIdeas();
+            }
+        }
+
+        function deleteIdea(index) {
+            ideas.splice(index, 1);
+            localStorage.setItem('vacation-ideas', JSON.stringify(ideas));
+            renderIdeas();
+        }
+
+        function filterRestaurants() {
+            const selector = document.getElementById('citySelector');
+            const grid = document.getElementById('restaurantGrid');
+            if(!selector || !grid) return;
+            
+            const selectedCity = selector.value;
+            grid.innerHTML = '';
+
+            const filtered = restaurantsData.filter(r => r.ville === selectedCity);
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #a0aec0; padding: 20px;">Aucune adresse enregistrée pour cette zone.</p>`;
+                return;
+            }
+
+            filtered.forEach(rest => {
+                const starRating = "⭐".repeat(rest.etoiles);
+
+                const card = document.createElement('div');
+                card.className = 'restaurant-card';
+                card.innerHTML = `
+                    <img class="restaurant-img" src="${rest.img}" alt="${rest.nom}" onerror="this.src='https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500'">
+                    <div class="restaurant-body">
+                        <div>
+                            <div class="rest-header">
+                                <h3 class="rest-name">${rest.nom}</h3>
+                                <div class="rest-stars">${starRating}</div>
+                            </div>
+                            <div class="rest-info"><span class="rest-label">Cuisine :</span> ${rest.type}</div>
+                            <div class="rest-info"><span class="rest-label">Budget :</span> ${rest.prix}</div>
+                            <div class="rest-info"><span class="rest-label">Spécialités :</span> ${rest.carte}</div>
+                            <div class="rest-info"><span class="rest-label">Adresse :</span> ${rest.adresse}</div>
+                        </div>
+                        <div class="links-group">
+                            <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(rest.nom + ' ' + rest.adresse)}" target="_blank" class="map-link">📍 Itinéraire Google Maps</a>
+                            <a href="${rest.web}" target="_blank" class="web-link">🔗 Accéder au Site / Réseaux</a>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+    </script>
+</body>
+</html>
