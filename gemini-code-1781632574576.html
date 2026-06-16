@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organisation Vacances d'Été</title>
+    <style>
+        :root {
+            --primary: #2b6cb0;
+            --secondary: #319795;
+            --bg: #f7fafc;
+            --card-bg: #ffffff;
+            --text: #2d3748;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--primary);
+        }
+
+        /* Système d'onglets principaux */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            background-color: #e2e8f0;
+            color: #4a5568;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .tab-content {
+            display: none;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            max-width: 1200px;
+            margin: 0 auto 60px auto; /* Marge en bas pour ne pas cacher par la barre de registre */
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Style Calendrier */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+        }
+
+        .day-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .day-date {
+            font-weight: bold;
+            color: var(--primary);
+            font-size: 14px;
+            border-bottom: 1px solid #edf2f7;
+            padding-bottom: 4px;
+        }
+
+        .day-note {
+            width: 100%;
+            height: 80px;
+            border: 1px solid #edf2f7;
+            border-radius: 4px;
+            padding: 6px;
+            resize: none;
+            font-size: 13px;
+        }
+
+        .day-note:focus {
+            outline: 2px solid var(--secondary);
+        }
+
+        /* Style Idées */
+        .ideas-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .ideas-list {
+            list-style: none;
+        }
+
+        .idea-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #f7fafc;
+            border-bottom: 1px solid #e2e8f0;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+
+        .delete-btn {
+            background: #e53e3e;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* Style Restaurants */
+        .city-select {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e0;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .restaurant-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .restaurant-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .rest-name {
+            color: var(--primary);
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .rest-info {
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+
+        .rest-label {
+            font-weight: bold;
+        }
+
+        .map-link {
+            display: inline-block;
+            margin-top: 10px;
+            color: var(--secondary);
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .map-link:hover {
+            text-decoration: underline;
+        }
+
+        /* --- NOUVEAU : Barre et Onglet de Registre en bas à gauche --- */
+        .bottom-left-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+
+        .register-toggle-btn {
+            background-color: #4a5568;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .register-card {
+            display: none;
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            width: 300px;
+            max-height: 250px;
+            background: white;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .register-card.active {
+            display: block;
+        }
+
+        .register-card h3 {
+            font-size: 14px;
+            color: var(--primary);
+            margin-bottom: 10px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 5px;
+        }
+
+        .log-item {
+            font-size: 12px;
+            padding: 4px 0;
+            border-bottom: 1px dashed #edf2f7;
+            color: #4a5568;
+        }
+
+        /* --- NOUVEAU : Pop-up d'identification --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .modal-box {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .modal-box h2 {
+            font-size: 20px;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .modal-box input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 16px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loginModal" class="modal-overlay" style="display: none;">
+        <div class="modal-box">
+            <h2>Bienvenue sur votre carnet</h2>
+            <p style="margin-bottom: 15px; font-size: 14px; color: #718096;">Veuillez donner un nom à cet appareil pour l'identifier dans le registre (ex: Téléphone Tom, PC Salon...).</p>
+            <input type="text" id="deviceNameInput" placeholder="Nom de l'appareil...">
+            <button class="btn" style="width: 100%;" onclick="saveDeviceName()">Valider et Accéder</button>
+        </div>
+    </div>
+
+    <header>
+        <h1>Mon Carnet de Vacances Étoilé</h1>
+        <p id="currentUserDisplay" style="font-size: 14px; color: #718096; margin-top: 5px;"></p>
+    </header>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="openTab('calendrier')">📅 Calendrier</button>
+        <button class="tab-btn" onclick="openTab('idees')">💡 Idées</button>
+        <button class="tab-btn" onclick="openTab('restaurants')">🍴 Restaurants</button>
+    </div>
+
+    <div id="calendrier" class="tab-content active">
+        <h2 style="margin-bottom: 20px;">Planning du 19 Juillet au 22 Août</h2>
+        <div class="calendar-grid" id="calendarGrid"></div>
+    </div>
+
+    <div id="idees" class="tab-content">
+        <div class="ideas-container">
+            <h2 style="margin-bottom: 20px;">Boîte à Idées / Activités</h2>
+            <div class="input-group">
+                <input type="text" id="ideaInput" placeholder="Ex: Louer des vélos, Visiter le musée...">
+                <button class="btn" onclick="addIdea()">Ajouter</button>
+            </div>
+            <ul class="ideas-list" id="ideasList"></ul>
+        </div>
+    </div>
+
+    <div id="restaurants" class="tab-content">
+        <h2>Guide des Restaurants</h2>
+        <p style="margin-bottom: 15px; color: #718096;">Sélectionnez une ville pour voir les adresses :</p>
+        
+        <select class="city-select" id="citySelector" onchange="filterRestaurants()">
+            <option value="toulouse">Toulouse</option>
+            <option value="lourdes">Lourdes</option>
+            <option value="bordeaux">Bordeaux</option>
+            <option value="dune-pilat">Dune du Pilat</option>
+            <option value="zurich">Zurich</option>
+            <option value="paris">Paris</option>
+        </select>
+
+        <div class="restaurant-grid" id="restaurantGrid"></div>
+    </div>
+
+    <div class="bottom-left-panel">
+        <div id="registerCard" class="register-card">
+            <h3>📋 Historique des connexions</h3>
+            <div id="logList"></div>
+        </div>
+        <button class="register-toggle-btn" onclick="toggleRegister()">📋 Registre</button>
+    </div>
+
+    <script>
+        // --- LOGIQUE D'IDENTIFICATION & REGISTRE ---
+        let currentDeviceName = localStorage.getItem('device-name');
+        let connectionLogs = JSON.parse(localStorage.getItem('connection-logs')) || [];
+
+        window.onload = function() {
+            if (!currentDeviceName) {
+                document.getElementById('loginModal').style.display = 'flex';
+            } else {
+                logConnection(currentDeviceName);
+                displayCurrentUser();
+            }
+            filterRestaurants();
+            renderLogs();
+        };
+
+        function saveDeviceName() {
+            const nameInput = document.getElementById('deviceNameInput').value.trim();
+            if (nameInput !== '') {
+                localStorage.setItem('device-name', nameInput);
+                currentDeviceName = nameInput;
+                document.getElementById('loginModal').style.display = 'none';
+                logConnection(nameInput);
+                displayCurrentUser();
+                renderLogs();
+            }
+        }
+
+        function logConnection(name) {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('fr-FR') + ' à ' + now.toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'});
+            const logEntry = `Connexion de [${name}] le ${dateStr}`;
+            
+            // Empêche de dupliquer la même connexion au rafraîchissement immédiat
+            if (connectionLogs.length === 0 || connectionLogs[0] !== logEntry) {
+                connectionLogs.unshift(logEntry); // Ajoute au début
+                // Garder les 30 derniers logs max
+                if (connectionLogs.length > 30) connectionLogs.pop();
+                localStorage.setItem('connection-logs', JSON.stringify(connectionLogs));
+            }
+        }
+
+        function displayCurrentUser() {
+            document.getElementById('currentUserDisplay').innerText = `Appareil actuel : ${currentDeviceName}`;
+        }
+
+        function toggleRegister() {
+            document.getElementById('registerCard').classList.toggle('active');
+        }
+
+        function renderLogs() {
+            const logListDiv = document.getElementById('logList');
+            logListDiv.innerHTML = '';
+            if (connectionLogs.length === 0) {
+                logListDiv.innerHTML = '<div class="log-item">Aucun historique.</div>';
+                return;
+            }
+            connectionLogs.forEach(log => {
+                const item = document.createElement('div');
+                item.className = 'log-item';
+                item.innerText = log;
+                logListDiv.appendChild(item);
+            });
+        }
+
+        // --- LOGIQUE DES ONGLETS ---
+        function openTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            if(event) {
+                event.currentTarget.classList.add('active');
+            }
+        }
+
+        // --- LOGIQUE DU CALENDRIER ---
+        const calendarGrid = document.getElementById('calendarGrid');
+        const startDate = new Date(2026, 6, 19); 
+        const endDate = new Date(2026, 7, 22);  
+
+        let currentDate = new Date(startDate);
+        
+        while (currentDate <= endDate) {
+            const dateString = currentDate.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+            const storageKey = `note-${currentDate.toISOString().split('T')[0]}`;
+            const savedNote = localStorage.getItem(storageKey) || '';
+
+            const dayCard = document.createElement('div');
+            dayCard.className = 'day-card';
+            dayCard.innerHTML = `
+                <div class="day-date">${dateString}</div>
+                <textarea class="day-note" data-key="${storageKey}" placeholder="Notes pour ce jour...">${savedNote}</textarea>
+            `;
+            calendarGrid.appendChild(dayCard);
+            
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+
+        document.querySelectorAll('.day-note').forEach(textarea => {
+            textarea.addEventListener('input', (e) => {
+                localStorage.setItem(e.target.getAttribute('data-key'), e.target.value);
+            });
+        });
+
+        // --- LOGIQUE DES IDÉES ---
+        const ideasList = document.getElementById('ideasList');
+        let ideas = JSON.parse(localStorage.getItem('vacation-ideas')) || [];
+
+        function renderIdeas() {
+            ideasList.innerHTML = '';
+            ideas.forEach((idea, index) => {
+                const li = document.createElement('li');
+                li.className = 'idea-item';
+                li.innerHTML = `
+                    <span>${idea}</span>
+                    <button class="delete-btn" onclick="deleteIdea(${index})">Supprimer</button>
+                `;
+                ideasList.appendChild(li);
+            });
+        }
+
+        function addIdea() {
+            const input = document.getElementById('ideaInput');
+            if (input.value.trim() !== '') {
+                ideas.push(input.value.trim());
+                localStorage.setItem('vacation-ideas', JSON.stringify(ideas));
+                input.value = '';
+                renderIdeas();
+            }
+        }
+
+        function deleteIdea(index) {
+            ideas.splice(index, 1);
+            localStorage.setItem('vacation-ideas', JSON.stringify(ideas));
+            renderIdeas();
+        }
+        
+        renderIdeas();
+
+        // --- LOGIQUE DES RESTAURANTS ---
+        const restaurantsData = [
+            // --- PARIS ---
+            {
+                ville: "paris",
+                nom: "Matsuya",
+                type: "Japonais traditionnel & Sushis",
+                prix: "€€ (Menus midi dès 15€)",
+                carte: "Sushis, Californias, Brochettes Yakitori, Chirashi, Soupe Miso.",
+                maps: "https://maps.google.com/?q=Matsuya+Paris+Rue+de+Vaugirard",
+                adresse: "204 Rue de Vaugirard, 75015 Paris"
+            },
+            {
+                ville: "paris",
+                nom: "Mangez et barrez-vous",
+                type: "Burgers artisanaux ultra-abordables",
+                prix: "€ (Burgers à partir de 3,40€)",
+                carte: "Le Grand Chelem (Cheeseburger), Le French (Sauce au bleu), Frites maison.",
+                maps: "https://maps.google.com/?q=Mangez+et+barrez+vous+Paris",
+                adresse: "38 Rue de la Fontaine au Roi, 75011 Paris"
+            },
+            {
+                ville: "paris",
+                nom: "Yuki Onigiri",
+                type: "Street food japonaise / Onigiris",
+                prix: "€ (Onigiris à l'unité dès 3,50€)",
+                carte: "Onigiri Saumon avocat, Thon mayonnaise piquante, Poulet Teriyaki.",
+                maps: "https://maps.google.com/?q=Yuki+Onigiri+Paris",
+                adresse: "7 Rue de la Michodière, 75002 Paris"
+            },
+            {
+                ville: "paris",
+                nom: "Okaeri",
+                type: "Salon de thé et Cantine Japonaise",
+                prix: "€€ (Plats autour de 14€)",
+                carte: "Donburi au poulet, Curry japonais, Matchas, Dorayaki maison.",
+                maps: "https://maps.google.com/?q=Okaeri+Paris",
+                adresse: "29 Rue de Bellefond, 75009 Paris"
+            },
+            {
+                ville: "paris",
+                nom: "Black and White Burger",
+                type: "Burgers gourmets au pain bicolore",
+                prix: "€€ (Formules autour de 15€)",
+                carte: "Le White Truffle, Le Black Mountain, frites de patates douces.",
+                maps: "https://maps.google.com/?q=Black+and+White+Burger+Paris",
+                adresse: "24 Rue de la Courtille, 75011 Paris"
+            },
+            {
+                ville: "paris",
+                nom: "Marcello",
+                type: "Italien chic / Café & Trattoria",
+                prix: "€€€ (Plats entre 18€ et 30€)",
+                carte: "Truffe Arancini, Gnocchis à la crème de truffe, Tiramisu géant.",
+                maps: "https://maps.google.com/?q=Marcello+Paris+Rue+Mabillon",
+                adresse: "8 Rue Mabillon, 75006 Paris"
+            },
+            {
+                ville: "paris",
+                nom: "Sando",
+                type: "Sandwiches japonais (Sando) & Street food",
+                prix: "€€ (Sandwichs autour de 12€)",
+                carte: "Katsu Sando (Porc ou poulet pané), Tamago Sando (Œuf), Frites d'edamame.",
+                maps: "https://maps.google.com/?q=Sando+Paris+Poissonniere",
+                adresse: "3 Rue du Faubourg Poissonnière, 75009 Paris"
+            },
+            {
+                ville: "paris",
+                nom: "K Street Toast",
+                type: "Street food coréenne / Egg Toasts",
+                prix: "€ (Toasts entre 7€ et 11€)",
+                carte: "Bacon & Egg Toast, Garlic Shrimp Toast, Poulet frit coréen (Dakgangjeong).",
+                maps: "https://maps.google.com/?q=K+Street+Toast+Paris",
+                adresse: "13 Rue de la Harpe, 75005 Paris"
+            },
+
+            // --- TOULOUSE ---
+            {
+                ville: "toulouse",
+                nom: "Le Zinc",
+                type: "Bistrot français / Bar à vin",
+                prix: "€€ (Plats et planches 15€-25€)",
+                carte: "Magret de canard entier, Planches de charcuterie locale, Camembert rôti.",
+                maps: "https://maps.google.com/?q=Le+Zinc+Toulouse+Saint+Pierre",
+                adresse: "14 Place Saint-Pierre, 31000 Toulouse"
+            },
+            {
+                ville: "toulouse",
+                nom: "Rue du Vietnam",
+                type: "Cuisine vietnamienne authentique",
+                prix: "€€ (Plats autour de 13€)",
+                carte: "Pho traditionnel au bœuf, Bo Bun croustillant, Nems maison.",
+                maps: "https://maps.google.com/?q=Rue+du+Vietnam+Toulouse",
+                adresse: "34 Rue de la Colombette, 31000 Toulouse"
+            },
+            {
+                ville: "toulouse",
+                nom: "Ô Cent Couverts",
+                type: "Buffet à volonté traditionnel",
+                prix: "€€ (Formules midi et soir 18€-25€)",
+                carte: "Large choix de viandes grillées, plats du terroir, bar à salades et desserts.",
+                maps: "https://maps.google.com/?q=O+Cent+Couverts+Toulouse",
+                adresse: "10 Rue d'Aubuisson, 31000 Toulouse"
+            },
+            {
+                ville: "toulouse",
+                nom: "Le Tôt ou Tard",
+                type: "Bistronomie créative / Cuisine du marché",
+                prix: "€€€ (Menus à partir de 30€)",
+                carte: "Tataki de thon, Filet mignon basse température, Pavlova aux fruits de saison.",
+                maps: "https://maps.google.com/?q=Le+Tot+ou+Tard+Toulouse",
+                adresse: "7 Rue de la Fonderie, 31000 Toulouse"
+            },
+            {
+                ville: "toulouse",
+                nom: "Mazzolina",
+                type: "Pizzeria artisanale napolitaine",
+                prix: "€€ (Pizzas de 11€ à 16€)",
+                carte: "Pizza Margherita DOP, Regina à la truffe, Calzone gourmand, Cannoli.",
+                maps: "https://maps.google.com/?q=Mazzolina+Toulouse",
+                adresse: "18 Rue de la Fonderie, 31000 Toulouse"
+            },
+            {
+                ville: "toulouse",
+                nom: "Waku Waku",
+                type: "Ramen & Cantine Japonaise",
+                prix: "€€ (Ramen à 14€)",
+                carte: "Tonkotsu Ramen, Shio Ramen, Gyozas grillés maison, Mochi glacé.",
+                maps: "https://maps.google.com/?q=Waku+Waku+Toulouse",
+                adresse: "40 Rue de la République, 31300 Toulouse"
+            },
+
+            // --- BORDEAUX ---
+            {
+                ville: "bordeaux",
+                nom: "Mizuki",
+                type: "Buffet asiatique & Wok",
+                prix: "€€ (Formules à volonté dès 19€)",
+                carte: "Sushis variés, Woks préparés à la minute, Grillades Teppanyaki, Nems.",
+                maps: "https://maps.google.com/?q=Mizuki+Bordeaux+Lac",
+                adresse: "Avenue des Quarante Journaux, 33300 Bordeaux"
+            },
+            {
+                ville: "bordeaux",
+                nom: "La Planque",
+                type: "Bistrot gourmand / Bar à tapas caches",
+                prix: "€€ (Assiettes à partager 8€-15€)",
+                carte: "Croquetas de jambon ibérique, Tataki de bœuf, Gravlax de saumon.",
+                maps: "https://maps.google.com/?q=La+Planque+Bordeaux",
+                adresse: "48 Rue des Bahutiers, 33000 Bordeaux"
+            },
+            {
+                ville: "bordeaux",
+                nom: "World Buffet",
+                type: "Grand buffet du monde à volonté",
+                prix: "€€ (Autour de 22€-28€ selon le moment)",
+                carte: "Cuisine italienne, asiatique, française, stand de fruits de mer et fontaine de chocolat.",
+                maps: "https://maps.google.com/?q=World+Buffet+Bordeaux",
+                adresse: "Rue Jean Samazeuilh, 33300 Bordeaux"
+            },
+            {
+                ville: "bordeaux",
+                nom: "Fufu
