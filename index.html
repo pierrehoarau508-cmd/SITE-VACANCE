@@ -163,7 +163,6 @@
             cursor: pointer;
         }
 
-        /* --- STYLES DU CHAT --- */
         .chat-box {
             border: 1px solid #cbd5e0;
             border-radius: 8px;
@@ -431,6 +430,9 @@
             text-align: center;
         }
     </style>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
@@ -510,9 +512,23 @@
     </div>
 
     <script>
-        // --- BASE DE DONNÉES RESTAURANTS ---
+        // CONFIGURATION APPLIQUÉE DEPUIS CAPTURE D'ÉCRAN
+        const firebaseConfig = {
+            apiKey: "AIzaSyAvvyYaUCRPtqjda6_rpUfv3peYGCE2rydo",
+            authDomain: "carnet-vacances.firebaseapp.com",
+            databaseURL: "https://carnet-vacances-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "carnet-vacances",
+            storageBucket: "carnet-vacances.appspot.com",
+            messagingSenderId: "66176952625",
+            appId: "1:66176952625:web:8e6c22d1d1159a892bf490"
+        };
+        
+        // Initialisation de Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Base de données locale pour les restos
         const restaurantsData = [
-            // TOULOUSE
             { ville: "toulouse", nom: "Black Pearl", type: "Smash Burgers & Bowls", etoiles: 5, prix: "15-20€", carte: "Burgers écrasés croustillants, frites maison, bowls fraîcheur.", adresse: "2 Rue Paul Mériel, 31000 Toulouse", web: "https://black-pearl-31.com/", img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600" },
             { ville: "toulouse", nom: "Le Zinc", type: "Bistrot & Bar à vin", etoiles: 4, prix: "25-35€", carte: "Plats du terroir, magret entier, planches de charcuterie.", adresse: "14 Place Saint-Pierre, 31000 Toulouse", web: "https://www.instagram.com/lezinctoulouse/", img: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600" },
             { ville: "toulouse", nom: "Rue du Vietnam", type: "Asiatique Authentique", etoiles: 5, prix: "15-25€", carte: "Pho traditionnel maison, Bo Bun croustillant.", adresse: "34 Rue de la Colombette, 31000 Toulouse", web: "https://www.instagram.com/rueduvietnam/", img: "https://images.unsplash.com/photo-1528605248644-14dd04022da1?w=600" },
@@ -525,88 +541,144 @@
             { ville: "toulouse", nom: "Black and White Burger", type: "Burgers Gourmets", etoiles: 4, prix: "14-20€", carte: "Burgers signatures avec pains au charbon végétal.", adresse: "63 Rue du Taur, 31000 Toulouse", web: "https://bnwburger.com/", img: "https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=600" },
             { ville: "toulouse", nom: "Marcello", type: "Pizzeria Napolitaine", etoiles: 5, prix: "15-25€", carte: "Pizzas au feu de bois napolitaines et cour intérieure.", adresse: "2 Boulevard Michelet, 31000 Toulouse", web: "https://restaurant-marcello.com/", img: "https://images.unsplash.com/photo-1546549032-9571cd6b27df?w=600" },
             { ville: "toulouse", nom: "Le Boui Boui Sando", type: "Sandwiches Sando", etoiles: 4, prix: "12-18€", carte: "Katsu Sando croustillants, pains briochés japonais.", adresse: "41 Rue des Paradoux, 31000 Toulouse", web: "https://www.instagram.com/lebouiboui_kebab/", img: "https://images.unsplash.com/photo-1509722747041-616f39b57569?w=600" },
-
-            // DUNE DU PILAT / ARCACHON
             { ville: "dune-pilat", nom: "La Cabane de l'Aiguillon", type: "Dégustation d'Huîtres", etoiles: 5, prix: "15-30€", carte: "Huîtres ultra fraîches du bassin, crevettes, bulots et vin blanc.", adresse: "Port de l'Aiguillon, 33120 Arcachon", web: "https://www.instagram.com/cabane_de_laiguillon/", img: "https://images.unsplash.com/photo-1553621042-f6e147245754?w=600" },
             { ville: "dune-pilat", nom: "Butch", type: "Smash Burgers", etoiles: 4, prix: "12-18€", carte: "Smash burgers croustillants et frites maison.", adresse: "Zone Artisanale, 33260 La Teste-de-Buch", web: "https://www.instagram.com/butch.smashburger/", img: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=600" },
             { ville: "dune-pilat", nom: "Le Bikini", type: "Restaurant de Plage / Latino", etoiles: 4, prix: "30-50€", carte: "Tapas, poissons frais grillés et ambiance bohème les pieds dans le sable.", adresse: "18 Allée du Petit Port, 33115 Arcachon", web: "https://www.instagram.com/lebikinarcachon/", img: "https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?w=600" },
             { ville: "dune-pilat", nom: "Chez Pierre", type: "Brasserie chic de la mer", etoiles: 5, prix: "40-70€", carte: "Plateaux de fruits de mer géants, poissons fins sauvages, sole meunière.", adresse: "1 Boulevard de la Plage, 33120 Arcachon", web: "https://www.instagram.com/cafedelaplage_chezpierre/", img: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=600" },
-
-            // PARIS
             { ville: "paris", nom: "Matsuya", type: "Japonais traditionnel", etoiles: 4, prix: "15-25€", carte: "Sushis, sashimis frais, yakitori cuits minute.", adresse: "204 Rue de Vaugirard, 75015 Paris", web: "https://www.ubereats.com/fr/store/matsuya/ZpvTFUfYT22K5a-rF0ribw", img: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600" },
             { ville: "paris", nom: "Kodawari Ramen (Tsukiji)", type: "Ramen Immersif", etoiles: 5, prix: "16-22€", carte: "Ramens d'exception au poisson dans un décor de faux marché d'Ito.", adresse: "12 Rue de Richelieu, 75001 Paris", web: "https://www.instagram.com/kodawariramen/", img: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=600" },
             { ville: "paris", nom: "Pink Mamma", type: "Italien festif", etoiles: 5, prix: "20-35€", carte: "Pâtes à la truffe fraîches, pizzas napolitaines, verrière incroyable.", adresse: "20 Bis Rue de Douai, 75009 Paris", web: "https://www.instagram.com/bigmamma.fr/", img: "https://images.unsplash.com/photo-1537047902294-62a40c20a6ae?w=600" },
             { ville: "paris", nom: "L'As du Fallafel", type: "Street-food du Marais", etoiles: 5, prix: "10-15€", carte: "Le fameux sandwich fallafel mondialement connu, pita ultra généreuse.", adresse: "34 Rue des Rosiers, 75004 Paris", web: "http://l-as-du-fallafel.zmenu.me", img: "https://images.unsplash.com/photo-1547058886-af77992d8d65?w=600" },
-
-            // BORDEAUX
             { ville: "bordeaux", nom: "Mizuki", type: "Buffet Asiatique & Wok", etoiles: 4, prix: "20-28€", carte: "Grand choix de sushis et grillades wok à la minute.", adresse: "Avenue des Quarante Journaux, 33300 Bordeaux", web: "https://www.instagram.com/mizuki.bordeaux/", img: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=600" },
             { ville: "bordeaux", nom: "Fufu Ramen", type: "Nouilles Japonaises", etoiles: 5, prix: "14-18€", carte: "Ramen chaud cuit à la minute devant vous, gyoza porc maison.", adresse: "37 Rue Saint-Rémi, 33000 Bordeaux", web: "https://www.instagram.com/fufuramen/", img: "https://images.unsplash.com/photo-1557872943-16a5ac26437e?w=600" },
             { ville: "bordeaux", nom: "Le Chien de Pavlov", type: "Bistronomie moderne", etoiles: 5, prix: "30-45€", carte: "Cuisine de saison inventive, assiettes graphiques, produits du marché.", adresse: "39 Rue de la Devise, 33000 Bordeaux", web: "https://www.instagram.com/lechiendepavlov/", img: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600" },
             { ville: "bordeaux", nom: "Osteria Da Luigi", type: "Trattoria Italienne", etoiles: 4, prix: "20-30€", carte: "Ambiance italienne chantante, planches géantes, pâtes fraîches.", adresse: "23 Rue du Pas-Saint-Georges, 33000 Bordeaux", web: "https://www.instagram.com/osteriadaluigibordeaux/", img: "https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=600" },
-
-            // LOURDES
             { ville: "lourdes", nom: "Chez Giovanni", type: "Pizzeria feu de bois", etoiles: 4, prix: "12-20€", carte: "Pizzas copieuses cuites au feu de bois dans une ambiance italienne.", adresse: "23 Rue de la Grotte, 65100 Lourdes", web: "https://www.facebook.com/p/Chez-Giovanni-Lourdes-100063715873289/", img: "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=600" },
             { ville: "lourdes", nom: "Le Saint Jean", type: "Cuisine Terroir / Sud-Ouest", etoiles: 4, prix: "18-28€", carte: "Confit de canard, garbure bigourdane, frites maison au gras de canard.", adresse: "25 Rue de la Grotte, 65100 Lourdes", web: "https://www.facebook.com/lesaintjeanlourdes/", img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=600" },
             { ville: "lourdes", nom: "L'Ambroisie", type: "Bistrot Raffiné", etoiles: 5, prix: "30-50€", carte: "Plats travaillés, truite des Pyrénées, desserts faits maison délicats.", adresse: "62 Rue de la Grotte, 65100 Lourdes", web: "https://www.instagram.com/lambroisie_lourdes/", img: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600" },
-
-            // ZURICH
             { ville: "zurich", nom: "Beetnut", type: "Healthy & Vegan", etoiles: 5, prix: "20-30 CHF", carte: "Bowls sains et colorés, toasts d'avocat, jus frais pressés à froid.", adresse: "Lagerstrasse 16b, 8004 Zürich", web: "https://www.instagram.com/beetnut/", img: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600" },
             { ville: "zurich", nom: "Frau Gerolds Garten", type: "Biergarten & Street Food", etoiles: 4, prix: "15-35 CHF", carte: "Lieu alternatif extérieur en conteneurs, fondues en hiver, grillades en été.", adresse: "Geroldstrasse 23, 8005 Zürich", web: "https://www.instagram.com/fraugeroldsgarten/", img: "https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=600" },
             { ville: "zurich", nom: "Zeughauskeller", type: "Traditionnel Suisse", etoiles: 4, prix: "30-50 CHF", carte: "Émincé de veau à la zurichoise avec röstis croustillants dans un ancien arsenal.", adresse: "Bahnhofstrasse 28a, 8001 Zürich", web: "https://www.zeughauskeller.ch/", img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=600" }
         ];
 
         let currentDeviceName = localStorage.getItem('device-name');
-        let connectionLogs = JSON.parse(localStorage.getItem('connection-logs')) || [];
-        let chatMessages = JSON.parse(localStorage.getItem('chat-messages')) || [];
 
         document.addEventListener("DOMContentLoaded", () => {
             initCalendar();
-            renderIdeas();
             filterRestaurants();
-            renderLogs();
-            renderChat();
 
             if (!currentDeviceName) {
                 document.getElementById('loginModal').style.display = 'flex';
             } else {
                 logConnection(currentDeviceName);
             }
+
+            // SYNCHRONISATION EN DIRECT DES IDÉES
+            database.ref('ideas').on('value', (snapshot) => {
+                const ideasList = document.getElementById('ideasList');
+                if(!ideasList) return;
+                ideasList.innerHTML = '';
+                const data = snapshot.val() || {};
+                Object.keys(data).forEach((key) => {
+                    const li = document.createElement('li');
+                    li.className = 'idea-item';
+                    li.innerHTML = `<span>${data[key]}</span><button class="delete-btn" onclick="deleteIdea('${key}')">Supprimer</button>`;
+                    ideasList.appendChild(li);
+                });
+            });
+
+            // SYNCHRONISATION EN DIRECT DES MESSAGES CHAT
+            database.ref('chat').on('value', (snapshot) => {
+                const box = document.getElementById('chatBox');
+                if (!box) return;
+                box.innerHTML = '';
+                const data = snapshot.val() || {};
+                
+                if (Object.keys(data).length === 0) {
+                    box.innerHTML = '<p style="color: #a0aec0; text-align: center; margin: auto 0;">Aucun message pour le moment.</p>';
+                    return;
+                }
+
+                Object.keys(data).forEach((key) => {
+                    const msg = data[key];
+                    const msgDiv = document.createElement('div');
+                    const isMe = (msg.author === currentDeviceName);
+                    msgDiv.className = `chat-message ${isMe ? 'me' : ''}`;
+                    msgDiv.innerHTML = `
+                        <div class="message-header">
+                            <span class="message-author">${msg.author}</span>
+                            <span class="message-time">${msg.time}</span>
+                        </div>
+                        <div class="message-text">${msg.text}</div>
+                    `;
+                    box.appendChild(msgDiv);
+                });
+                box.scrollTop = box.scrollHeight;
+            });
+
+            // SYNCHRONISATION EN DIRECT DES CONNEXIONS (REGISTRE)
+            database.ref('logs').on('value', (snapshot) => {
+                const logListDiv = document.getElementById('logList');
+                if(!logListDiv) return;
+                logListDiv.innerHTML = '';
+                const data = snapshot.val() || {};
+                const keys = Object.keys(data).reverse();
+
+                if(keys.length === 0) {
+                    logListDiv.innerHTML = '<div class="log-item" style="color: #a0aec0; text-align: center;">Aucun historique.</div>';
+                    return;
+                }
+
+                keys.forEach(key => {
+                    const item = document.createElement('div');
+                    item.className = 'log-item';
+                    item.innerText = data[key];
+                    logListDiv.appendChild(item);
+                });
+            });
         });
 
+        // CALENDRIER SYNCHRONISÉ
         function initCalendar() {
             const calendarGrid = document.getElementById('calendarGrid');
             if(!calendarGrid) return;
             calendarGrid.innerHTML = '';
             
-            const start = new Date(2026, 6, 19, 12, 0, 0); 
-            const end = new Date(2026, 7, 22, 12, 0, 0);  
+            const start = new Date(2026, 6, 19); 
+            const end = new Date(2026, 7, 22);  
             let current = new Date(start);
-            let maxLoop = 100; 
 
-            while (current <= end && maxLoop > 0) {
-                maxLoop--;
+            while (current <= end) {
                 const dateString = current.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
-                
                 const year = current.getFullYear();
                 const month = String(current.getMonth() + 1).padStart(2, '0');
                 const day = String(current.getDate()).padStart(2, '0');
-                const storageKey = `note-${year}-${month}-${day}`;
-                
-                const savedNote = localStorage.getItem(storageKey) || '';
+                const storageKey = `${year}-${month}-${day}`;
 
                 const dayCard = document.createElement('div');
                 dayCard.className = 'day-card';
                 dayCard.innerHTML = `
                     <div class="day-date">${dateString}</div>
-                    <textarea class="day-note" data-key="${storageKey}" placeholder="Notes...">${savedNote}</textarea>
+                    <textarea class="day-note" id="note-${storageKey}" data-key="${storageKey}" placeholder="Notes..."></textarea>
                 `;
                 calendarGrid.appendChild(dayCard);
+
+                // Écouter les changements de Firebase pour chaque jour
+                database.ref(`calendar/${storageKey}`).on('value', (snapshot) => {
+                    const txtArea = document.getElementById(`note-${storageKey}`);
+                    if(txtArea && snapshot.val() !== null) {
+                        txtArea.value = snapshot.val();
+                    }
+                });
+
                 current.setDate(current.getDate() + 1);
             }
 
+            // Envoyer la note sur Firebase à chaque fois qu'on tape dans une case
             document.querySelectorAll('.day-note').forEach(textarea => {
                 textarea.addEventListener('input', (e) => {
-                    localStorage.setItem(e.target.getAttribute('data-key'), e.target.value);
+                    const key = e.target.getAttribute('data-key');
+                    database.ref(`calendar/${key}`).set(e.target.value);
                 });
             });
         }
@@ -614,13 +686,8 @@
         function openTab(tabId, event) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            
             document.getElementById(tabId).classList.add('active');
-            if(event && event.currentTarget) {
-                event.currentTarget.classList.add('active');
-            }
-
-            // Si on ouvre l'onglet chat, on descend automatiquement tout en bas des messages
+            if(event) event.currentTarget.classList.add('active');
             if (tabId === 'discussion') {
                 const box = document.getElementById('chatBox');
                 if(box) box.scrollTop = box.scrollHeight;
@@ -640,174 +707,66 @@
         function logConnection(name) {
             const now = new Date();
             const dateStr = now.toLocaleDateString('fr-FR') + ' à ' + now.toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'});
-            const logEntry = `Connexion de [${name}] le ${dateStr}`;
-            
-            const displayEl = document.getElementById('currentUserDisplay');
-            if(displayEl) displayEl.innerText = `Appareil actuel : ${name}`;
-
-            connectionLogs.unshift(logEntry);
-            if (connectionLogs.length > 50) connectionLogs.pop();
-            localStorage.setItem('connection-logs', JSON.stringify(connectionLogs));
-            renderLogs();
+            database.ref('logs').push(`Connexion de [${name}] le ${dateStr}`);
+            document.getElementById('currentUserDisplay').innerText = `Appareil actuel : ${name}`;
         }
 
-        function toggleRegister() {
-            document.getElementById('registerCard').classList.toggle('active');
-        }
+        function toggleRegister() { document.getElementById('registerCard').classList.toggle('active'); }
+        function clearLogs() { if(confirm("Vider l'historique ?")) database.ref('logs').remove(); }
 
-        function clearLogs() {
-            if(confirm("Voulez-vous vraiment vider tout l'historique du registre ?")) {
-                connectionLogs = [];
-                localStorage.setItem('connection-logs', JSON.stringify(connectionLogs));
-                renderLogs();
-            }
-        }
-
-        function renderLogs() {
-            const logListDiv = document.getElementById('logList');
-            if(!logListDiv) return;
-            logListDiv.innerHTML = '';
-            
-            if(connectionLogs.length === 0) {
-                logListDiv.innerHTML = '<div class="log-item" style="color: #a0aec0; text-align: center;">Aucun historique enregistré.</div>';
-                return;
-            }
-
-            connectionLogs.forEach(log => {
-                const item = document.createElement('div');
-                item.className = 'log-item';
-                item.innerText = log;
-                logListDiv.appendChild(item);
-            });
-        }
-
-        let ideas = JSON.parse(localStorage.getItem('vacation-ideas')) || [];
-        function renderIdeas() {
-            const ideasList = document.getElementById('ideasList');
-            if(!ideasList) return;
-            ideasList.innerHTML = '';
-            ideas.forEach((idea, index) => {
-                const li = document.createElement('li');
-                li.className = 'idea-item';
-                li.innerHTML = `<span>${idea}</span><button class="delete-btn" onclick="deleteIdea(${index})">Supprimer</button>`;
-                ideasList.appendChild(li);
-            });
-        }
-
+        // ACTIONS BOÎTE À IDÉES
         function addIdea() {
             const input = document.getElementById('ideaInput');
             if (input && input.value.trim() !== '') {
-                ideas.push(input.value.trim());
-                localStorage.setItem('vacation-ideas', JSON.stringify(ideas));
+                database.ref('ideas').push(input.value.trim());
                 input.value = '';
-                renderIdeas();
             }
         }
+        function deleteIdea(key) { database.ref(`ideas/${key}`).remove(); }
 
-        function deleteIdea(index) {
-            ideas.splice(index, 1);
-            localStorage.setItem('vacation-ideas', JSON.stringify(ideas));
-            renderIdeas();
-        }
-
-        // --- ENREGISTREMENT ET AFFICHAGE DU CHAT ---
+        // ACTIONS CHAT
         function sendChatMessage() {
             const input = document.getElementById('chatInput');
             if (!input || input.value.trim() === '') return;
-
             const now = new Date();
             const timeStr = now.toLocaleDateString('fr-FR', {day: 'numeric', month: 'short'}) + ' à ' + now.toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'});
-
-            const messageObj = {
+            
+            database.ref('chat').push({
                 author: currentDeviceName || "Appareil Inconnu",
                 text: input.value.trim(),
                 time: timeStr
-            };
-
-            chatMessages.push(messageObj);
-            localStorage.setItem('chat-messages', JSON.stringify(chatMessages));
-            input.value = '';
-            renderChat();
-        }
-
-        function renderChat() {
-            const box = document.getElementById('chatBox');
-            if (!box) return;
-            box.innerHTML = '';
-
-            if (chatMessages.length === 0) {
-                box.innerHTML = '<p style="color: #a0aec0; text-align: center; margin: auto 0;">Aucun message pour le moment. Lancez la discussion !</p>';
-                return;
-            }
-
-            chatMessages.forEach(msg => {
-                const msgDiv = document.createElement('div');
-                // On applique un style spécial si c'est notre propre appareil
-                const isMe = (msg.author === currentDeviceName);
-                msgDiv.className = `chat-message ${isMe ? 'me' : ''}`;
-
-                msgDiv.innerHTML = `
-                    <div class="message-header">
-                        <span class="message-author">${msg.author}</span>
-                        <span class="message-time">${msg.time}</span>
-                    </div>
-                    <div class="message-text">${msg.text}</div>
-                `;
-                box.appendChild(msgDiv);
             });
-
-            // Scroller automatiquement vers le bas à l'arrivée d'un message
-            box.scrollTop = box.scrollHeight;
+            input.value = '';
         }
+        function clearChat() { if (confirm("Effacer tout le chat ?")) database.ref('chat').remove(); }
 
-        function clearChat() {
-            if (confirm("Voulez-vous vraiment effacer tous les messages du chat ?")) {
-                chatMessages = [];
-                localStorage.setItem('chat-messages', JSON.stringify(chatMessages));
-                renderChat();
-            }
-        }
-
+        // RESTAURANTS
         function filterRestaurants() {
             const selector = document.getElementById('citySelector');
             const grid = document.getElementById('restaurantGrid');
             if(!selector || !grid) return;
-            
             const selectedCity = selector.value;
             grid.innerHTML = '';
-
             const filtered = restaurantsData.filter(r => r.ville === selectedCity);
-
-            if (filtered.length === 0) {
-                grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #a0aec0; padding: 20px;">Aucune adresse enregistrée pour cette zone.</p>`;
-                return;
-            }
-
             filtered.forEach(rest => {
                 const starRating = "⭐".repeat(rest.etoiles);
-                const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(rest.nom + ' ' + rest.adresse)}`;
-
                 const card = document.createElement('div');
                 card.className = 'restaurant-card';
                 card.innerHTML = `
-                    <img class="restaurant-img" src="${rest.img}" alt="${rest.nom}" onerror="this.src='https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500'">
+                    <img class="restaurant-img" src="${rest.img}" alt="${rest.nom}">
                     <div class="restaurant-body">
                         <div>
-                            <div class="rest-header">
-                                <h3 class="rest-name">${rest.nom}</h3>
-                                <div class="rest-stars">${starRating}</div>
-                            </div>
+                            <div class="rest-header"><h3 class="rest-name">${rest.nom}</h3><div class="rest-stars">${starRating}</div></div>
                             <div class="rest-info"><span class="rest-label">Cuisine :</span> ${rest.type}</div>
                             <div class="rest-info"><span class="rest-label">Budget :</span> ${rest.prix}</div>
                             <div class="rest-info"><span class="rest-label">Spécialités :</span> ${rest.carte}</div>
                             <div class="rest-info"><span class="rest-label">Adresse :</span> ${rest.adresse}</div>
                         </div>
                         <div class="links-group">
-                            <a href="${mapUrl}" target="_blank" class="map-link">📍 Itinéraire Google Maps</a>
-                            <a href="${rest.web}" target="_blank" class="web-link">🔗 Accéder au Site / Réseaux</a>
+                            <a href="https://maps.google.com/?q=${encodeURIComponent(rest.nom + ' ' + rest.adresse)}" target="_blank" class="map-link">📍 Itinéraire Google Maps</a>
+                            <a href="${rest.web}" target="_blank" class="web-link">🔗 Accéder au Site</a>
                         </div>
-                    </div>
-                `;
+                    </div>`;
                 grid.appendChild(card);
             });
         }
